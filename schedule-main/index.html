@@ -638,11 +638,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 1px solid var(--border-color);
-            display: none;
-        }
-
-        .workstream-sticky-bar.visible {
-            display: block;
         }
 
         .schedule-container {
@@ -5765,6 +5760,29 @@
             }
         }
 
+        // Sticky workstream bar - updates text to show current workstream section
+        function updateWorkstreamStickyBar() {
+            const stickyBar = document.getElementById('workstreamStickyBar');
+            const stickyText = document.getElementById('workstreamStickyText');
+            const dateHeader = document.getElementById('scheduleHeaderSticky');
+            const wsHeaders = document.querySelectorAll('.workstream-header[data-ws-name]');
+            if (!wsHeaders.length || !stickyBar || !stickyText) return;
+
+            // Default to first workstream
+            let currentWs = wsHeaders[0].getAttribute('data-ws-name');
+
+            if (dateHeader) {
+                const threshold = dateHeader.getBoundingClientRect().bottom + 4;
+                for (const wh of wsHeaders) {
+                    if (wh.getBoundingClientRect().top <= threshold) {
+                        currentWs = wh.getAttribute('data-ws-name');
+                    }
+                }
+            }
+
+            stickyText.textContent = currentWs;
+        }
+
         // Helpers
         function formatDate(date) {
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -6066,6 +6084,11 @@
                         <div style="font-size: 0.875rem;">Add technicians in Supabase to get started</div>
                     </div>
                 `;
+            }
+
+            // Update sticky workstream bar text
+            if (typeof updateWorkstreamStickyBar === 'function') {
+                updateWorkstreamStickyBar();
             }
         }
 
@@ -9355,43 +9378,18 @@ Thank you,
                 });
             }
 
-            // Sticky workstream bar on page scroll
-            const stickyBar = document.getElementById('workstreamStickyBar');
-            const stickyText = document.getElementById('workstreamStickyText');
-            const dateHeader = document.getElementById('scheduleHeaderSticky');
-
-            // Measure date header height and set CSS variable for sticky stacking
-            function measureHeaderHeight() {
-                if (dateHeader) {
-                    const h = dateHeader.offsetHeight;
-                    document.documentElement.style.setProperty('--header-sticky-height', h + 'px');
-                }
-            }
-            measureHeaderHeight();
-            window.addEventListener('resize', measureHeaderHeight);
-
-            function updateWorkstreamStickyBar() {
-                const wsHeaders = document.querySelectorAll('.workstream-header[data-ws-name]');
-                if (!wsHeaders.length || !dateHeader || !stickyBar) return;
-
-                const threshold = dateHeader.getBoundingClientRect().bottom + 4;
-                let currentWs = null;
-
-                for (const wh of wsHeaders) {
-                    if (wh.getBoundingClientRect().top <= threshold) {
-                        currentWs = wh.getAttribute('data-ws-name');
+            // Sticky workstream bar - measure header height and set up scroll listener
+            (function initStickyWorkstream() {
+                const dateHeader = document.getElementById('scheduleHeaderSticky');
+                function measureHeaderHeight() {
+                    if (dateHeader) {
+                        document.documentElement.style.setProperty('--header-sticky-height', dateHeader.offsetHeight + 'px');
                     }
                 }
-
-                if (currentWs) {
-                    stickyText.textContent = currentWs;
-                    stickyBar.classList.add('visible');
-                } else {
-                    stickyBar.classList.remove('visible');
-                }
-            }
-
-            window.addEventListener('scroll', updateWorkstreamStickyBar, { passive: true });
+                measureHeaderHeight();
+                window.addEventListener('resize', measureHeaderHeight);
+                window.addEventListener('scroll', updateWorkstreamStickyBar, { passive: true });
+            })();
         });
     </script>
 </body>
