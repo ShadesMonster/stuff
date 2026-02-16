@@ -451,11 +451,19 @@
             border-color: #d97706 !important;
         }
 
-        /* === LOGIN PILL (top-left) === */
-        .login-pill {
+        /* === TOP-LEFT GROUP (auth + online) === */
+        .top-left-group {
             position: absolute;
             top: 24px;
             left: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        /* === LOGIN PILL === */
+        .login-pill {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -468,7 +476,6 @@
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s ease;
-            z-index: 10;
         }
 
         .login-pill:hover {
@@ -481,11 +488,21 @@
             height: 16px;
         }
 
-        /* === USER INFO (top-left, shown when logged in) === */
+        /* === ONLINE PILL === */
+        .online-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* === USER INFO (shown when logged in) === */
         .user-info {
-            position: absolute;
-            top: 24px;
-            left: 24px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -495,7 +512,6 @@
             padding: 6px 16px 6px 6px;
             font-size: 0.85rem;
             color: var(--text-secondary);
-            z-index: 10;
         }
 
         .user-avatar {
@@ -509,21 +525,6 @@
             color: white;
             font-weight: 600;
             font-size: 0.75rem;
-        }
-
-        .logout-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
-            margin-left: 4px;
-            display: flex;
-            align-items: center;
-        }
-
-        .logout-btn:hover {
-            color: var(--accent-pink);
         }
 
         /* === THEME TOGGLE (top-right) === */
@@ -613,7 +614,8 @@
             border: 1px solid var(--border-color);
             border-radius: 16px;
             box-shadow: var(--shadow-glow);
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
             transition: all 0.2s ease;
         }
 
@@ -1300,31 +1302,15 @@
         }
 
         @media (max-width: 768px) {
-            .login-pill, .user-info {
+            .top-left-group {
                 position: static;
+                justify-content: center;
                 margin: 8px auto 0;
             }
 
             .theme-toggle {
                 position: static;
                 margin: 8px auto 0;
-            }
-
-            .header {
-                padding: 20px 16px 12px;
-            }
-
-            .logo-section h1 {
-                font-size: 1.8rem;
-            }
-
-            .logo-section p {
-                font-size: 0.95rem;
-            }
-
-            .header-actions {
-                justify-content: center;
-                width: 100%;
             }
 
             .week-navigator {
@@ -1347,6 +1333,23 @@
             .btn-today {
                 padding: 0.375rem 0.625rem;
                 font-size: 0.6875rem;
+            }
+
+            .header {
+                padding: 20px 16px 12px;
+            }
+
+            .logo-section h1 {
+                font-size: 1.8rem;
+            }
+
+            .logo-section p {
+                font-size: 0.95rem;
+            }
+
+            .header-actions {
+                justify-content: center;
+                width: 100%;
             }
 
             .toolbar {
@@ -1631,22 +1634,28 @@
     </style>
 </head>
 <body>
-    <!-- User Info (top-left) -->
-    <div class="user-info" id="userInfo" style="display: none; cursor: pointer;" onclick="toggleUserMenu(event)">
-        <div class="user-avatar" id="userAvatar">?</div>
-        <span id="userName">User</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: -4px;">
-            <path d="M6 9l6 6 6-6"/>
-        </svg>
+    <!-- Top-left: Auth + Online -->
+    <div class="top-left-group">
+        <div class="user-info" id="userInfo" style="display: none; cursor: pointer;" onclick="toggleUserMenu(event)">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <span id="userName">User</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: -4px;">
+                <path d="M6 9l6 6 6-6"/>
+            </svg>
+        </div>
+        <button class="login-pill" id="authBtn" onclick="showLoginModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10 17 15 12 10 7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            Sign In
+        </button>
+        <div id="onlineUsers" class="online-pill">
+            <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%; animation: pulse 2s infinite; flex-shrink: 0;"></span>
+            <span id="onlineCount">1 online</span>
+        </div>
     </div>
-    <button class="login-pill" id="authBtn" onclick="showLoginModal()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-        </svg>
-        Sign In
-    </button>
 
     <!-- Theme Toggle (top-right) -->
     <button class="theme-toggle" id="toggleDarkMode" onclick="toggleDarkMode()" title="Toggle dark mode">
@@ -1666,20 +1675,12 @@
             <p>Resource deployment & planning</p>
         </div>
         <div class="header-actions">
-            <div id="onlineUsers" style="
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: var(--bg-input);
-                border: 1px solid var(--border-color);
-                padding: 6px 14px;
-                border-radius: 20px;
-                font-size: 0.875rem;
-                color: var(--text-secondary);
-            ">
-                <span style="width: 8px; height: 8px; background: #059669; border-radius: 50%; animation: pulse 2s infinite;"></span>
-                <span id="onlineCount">1 online</span>
+            <div class="week-navigator">
+                <button onclick="changeWeek(-1)" aria-label="Previous week">‹</button>
+                <div class="week-display" id="weekDisplay">Week 49 · December 2025</div>
+                <button onclick="changeWeek(1)" aria-label="Next week">›</button>
             </div>
+            <button class="btn-today" onclick="goToToday()">Today</button>
         </div>
     </header>
 
@@ -1697,12 +1698,6 @@
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search name, Q number, location, role..." oninput="renderSchedule()">
             </div>
-            <div class="week-navigator">
-                <button onclick="changeWeek(-1)" aria-label="Previous week">‹</button>
-                <div class="week-display" id="weekDisplay">Week 49 · December 2025</div>
-                <button onclick="changeWeek(1)" aria-label="Next week">›</button>
-            </div>
-            <button class="btn-today" onclick="goToToday()">Today</button>
         </div>
         <div class="toolbar-actions">
             <button class="btn-icon" id="manageTeamBtn" onclick="showManageTeamModal()" title="Manage Team" style="display: none;">
@@ -1797,7 +1792,7 @@
 
     <!-- Schedule -->
     <div class="schedule-wrapper">
-        <div class="schedule-container" style="overflow-x: auto;">
+        <div class="schedule-container">
             <div class="schedule-grid" id="scheduleGrid">
                 <!-- Rendered by JS -->
             </div>
