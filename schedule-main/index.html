@@ -624,6 +624,27 @@
             overflow: hidden;
         }
 
+        .workstream-sticky-bar {
+            position: sticky;
+            top: var(--header-sticky-height, 90px);
+            z-index: 19;
+            background: var(--bg-input);
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            padding: 8px 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .workstream-sticky-bar.visible {
+            display: block;
+        }
+
         .schedule-container {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -1810,6 +1831,9 @@
                     <!-- Header rendered by JS -->
                 </div>
             </div>
+        </div>
+        <div class="workstream-sticky-bar" id="workstreamStickyBar">
+            <span id="workstreamStickyText"></span>
         </div>
         <div class="schedule-container" id="scheduleContainer">
             <div class="schedule-grid" id="scheduleGrid">
@@ -6008,7 +6032,7 @@
                 if (workstreamFilter !== 'all' && workstreamFilter !== ws) return;
 
                 hasData = true;
-                html += `<div class="workstream-divider"><div class="workstream-header">${ws}</div></div>`;
+                html += `<div class="workstream-divider"><div class="workstream-header" data-ws-name="${ws}">${ws}</div></div>`;
 
                 grouped[ws].forEach(tech => {
                     html += `<div class="person-row">`;
@@ -9330,6 +9354,44 @@ Thank you,
                     headerScroll.scrollLeft = scheduleContainer.scrollLeft;
                 });
             }
+
+            // Sticky workstream bar on page scroll
+            const stickyBar = document.getElementById('workstreamStickyBar');
+            const stickyText = document.getElementById('workstreamStickyText');
+            const dateHeader = document.getElementById('scheduleHeaderSticky');
+
+            // Measure date header height and set CSS variable for sticky stacking
+            function measureHeaderHeight() {
+                if (dateHeader) {
+                    const h = dateHeader.offsetHeight;
+                    document.documentElement.style.setProperty('--header-sticky-height', h + 'px');
+                }
+            }
+            measureHeaderHeight();
+            window.addEventListener('resize', measureHeaderHeight);
+
+            function updateWorkstreamStickyBar() {
+                const wsHeaders = document.querySelectorAll('.workstream-header[data-ws-name]');
+                if (!wsHeaders.length || !dateHeader || !stickyBar) return;
+
+                const threshold = dateHeader.getBoundingClientRect().bottom + 4;
+                let currentWs = null;
+
+                for (const wh of wsHeaders) {
+                    if (wh.getBoundingClientRect().top <= threshold) {
+                        currentWs = wh.getAttribute('data-ws-name');
+                    }
+                }
+
+                if (currentWs) {
+                    stickyText.textContent = currentWs;
+                    stickyBar.classList.add('visible');
+                } else {
+                    stickyBar.classList.remove('visible');
+                }
+            }
+
+            window.addEventListener('scroll', updateWorkstreamStickyBar, { passive: true });
         });
     </script>
 </body>
