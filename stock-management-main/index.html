@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management | M Group</title>
+    <link rel="icon" type="image/x-icon" href="https://mgroupltd.com/favicon.ico">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --accent-pink: #e91e8c;
+            --accent-orange: #f7941d;
+            --accent-yellow: #fbb040;
+            --accent-navy: #1a2744;
+            --accent-green: #059669;
+            --accent-purple: #7c3aed;
+            --accent-cyan: #0891b2;
+            --text-primary: #1a2744;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-glow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --danger: #ef4444;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow-glow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'DM Sans', sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            min-height: 100vh; 
+            line-height: 1.6; 
+        }
+
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 40px 24px; 
+            position: relative; 
+        }
+
+        .header { 
+            text-align: center; 
+            margin-bottom: 32px; 
+        }
+
+        .header h1 { 
+            font-family: 'Space Mono', monospace; 
+            font-size: 2.5rem; 
+            font-weight: 700; 
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+            margin-bottom: 8px; 
+        }
+
+        .header p { 
+            color: var(--text-secondary); 
+            font-size: 1.1rem; 
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent-pink);
+            color: var(--text-primary);
+        }
+
+        .theme-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .theme-toggle .sun-icon { display: none; }
+        .theme-toggle .moon-icon { display: block; }
+
+        [data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+        [data-theme="dark"] .theme-toggle .moon-icon { display: none; }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .nav-tab {
+            padding: 12px 28px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--accent-pink);
+            color: var(--text-primary);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
+            border-color: transparent;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-value.warning {
+            background: var(--accent-orange);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .quick-action {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .quick-action:hover {
+            border-color: var(--accent-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(233, 30, 140, 0.15);
+        }
+
+        .quick-action-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .quick-action-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--accent-pink), var(--accent-orange));
+            border-radius: 2px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:hover {
+            border-color: var(--accent-pink);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-input);
+        }
+
+        tr:hover {
+            background: var(--bg-input);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-in-stock {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+
+        .status-low-stock {
+            background: rgba(247, 148, 29, 0.1);
+            color: var(--accent-orange);
+            border: 1px solid rgba(247, 148, 29, 0.3);
+        }
+
+        .status-installed {
+            background: rgba(8, 145, 178, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(8, 145, 178, 0.3);
+        }
+
+        .location-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(233, 30, 140, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-pink);
+            color: var(--accent-pink);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: var(--bg-input);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--accent-pink);
+            color: white;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:hover, .form-select:hover {
+            border-color: var(--accent-pink);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        .info-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .info-box strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .info-box p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .barcode-print-area {
+            background: white;
+            color: #1a2744;
+            padding: 24px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 16px 0;
+            border: 2px dashed var(--border-color);
+        }
+
+        .barcode-print-area h3 {
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .barcode-print-area p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .barcode-label-info {
+            margin-top: 16px;
+            text-align: left;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .label-row:last-child {
+            border-bottom: none;
+        }
+
+        .label-field {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        .label-value {
+            color: #1a2744;
+            font-size: 0.9rem;
+        }
+
+        #scanner-container {
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-details {
+            flex: 1;
+        }
+
+        .history-details strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .history-details small {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .history-qty {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .history-qty.out {
+            color: var(--danger);
+        }
+
+        .history-qty.in {
+            color: var(--accent-green);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .quick-location-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px 16px; }
+            .header h1 { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stat-value { font-size: 1.8rem; }
+            .quick-actions { grid-template-columns: repeat(2, 1fr); }
+            th, td { padding: 10px; font-size: 0.85rem; }
+            .btn { width: 100%; }
+            .form-actions { flex-direction: column; }
+            .nav-tabs { flex-wrap: wrap; }
+            .nav-tab { flex: 1; min-width: 120px; text-align: center; }
+            .theme-toggle .toggle-text { display: none; }
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            .barcode-print-area, .barcode-print-area * { visibility: visible; }
+            .barcode-print-area {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                border: 2px solid #000;
+                padding: 24px;
+                background: white;
+                width: 400px;
+            }
+            .barcode-label-info {
+                border-top: 1px solid #000;
+            }
+            .label-row {
+                border-bottom: 1px solid #ddd;
+            }
+            .label-field, .label-value {
+                color: #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const initialAssets = [
+            { id: 'AST-001', type: 'Flow Meter', barcode: 'FM20240001', serialNumber: 'SN-FM-001', qNumber: 'Q12345', qRefDescription: 'Water Flow Sensor Unit', projectManager: 'John Smith', plannedDate: '2024-03-15', location: 'RACK-A3', status: 'In Stock', receivedDate: '2024-01-15', movements: [] },
+            { id: 'AST-002', type: 'Pressure Gauge', barcode: 'PG20240002', serialNumber: 'SN-PG-002', qNumber: 'Q12346', qRefDescription: 'Pressure Monitoring Device', projectManager: 'Sarah Williams', plannedDate: '2024-03-20', location: 'RACK-B1', status: 'In Stock', receivedDate: '2024-01-18', movements: [] },
+            { id: 'AST-003', type: 'Flow Meter', barcode: 'FM20240003', serialNumber: 'SN-FM-003', qNumber: 'Q12347', qRefDescription: 'Industrial Flow Meter', projectManager: 'Mike Johnson', plannedDate: '2024-02-01', location: null, status: 'Installed', receivedDate: '2024-01-10', installedAt: { job: 'JOB-2024-156', address: '42 High Street, Bristol', date: '2024-02-01', by: 'John Smith' }, movements: [] },
+        ];
+
+        const initialConsumables = [
+            { id: 'CON-001', name: 'Wet Wipes (Pack)', stock: 45, lowThreshold: 20, unit: 'packs' },
+            { id: 'CON-002', name: 'Cable Ties', stock: 120, lowThreshold: 50, unit: 'bags' },
+            { id: 'CON-003', name: 'Safety Gloves', stock: 8, lowThreshold: 15, unit: 'pairs' },
+            { id: 'CON-004', name: 'Duct Tape', stock: 22, lowThreshold: 10, unit: 'rolls' },
+        ];
+
+        const initialDispensing = [
+            { id: 1, consumableId: 'CON-001', consumableName: 'Wet Wipes (Pack)', quantity: 2, dispensedTo: 'Mike Johnson', dispensedBy: 'Charlie', dispensedFor: 'Van Stock', date: '2024-02-08' },
+            { id: 2, consumableId: 'CON-003', consumableName: 'Safety Gloves', quantity: 3, dispensedTo: 'Mike Johnson', dispensedBy: 'Charlie', dispensedFor: 'Personal', date: '2024-02-07' },
+            { id: 3, consumableId: 'CON-001', consumableName: 'Wet Wipes (Pack)', quantity: 5, dispensedTo: 'Sarah Williams', dispensedBy: 'Charlie', dispensedFor: 'Van Stock', date: '2024-02-06' },
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('assets');
+            const [darkMode, setDarkMode] = useState(false);
+            const [assets, setAssets] = useState(() => {
+                const saved = localStorage.getItem('stockSystem_assets');
+                return saved ? JSON.parse(saved) : initialAssets;
+            });
+            const [consumables, setConsumables] = useState(() => {
+                const saved = localStorage.getItem('stockSystem_consumables');
+                return saved ? JSON.parse(saved) : initialConsumables;
+            });
+            const [dispensingHistory, setDispensingHistory] = useState(() => {
+                const saved = localStorage.getItem('stockSystem_dispensing');
+                return saved ? JSON.parse(saved) : initialDispensing;
+            });
+
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+            }, [darkMode]);
+
+            useEffect(() => {
+                localStorage.setItem('stockSystem_assets', JSON.stringify(assets));
+            }, [assets]);
+            useEffect(() => {
+                localStorage.setItem('stockSystem_consumables', JSON.stringify(consumables));
+            }, [consumables]);
+            useEffect(() => {
+                localStorage.setItem('stockSystem_dispensing', JSON.stringify(dispensingHistory));
+            }, [dispensingHistory]);
+
+            return (
+                <div className="container">
+                    <button className="theme-toggle" onClick={() => setDarkMode(!darkMode)} title="Toggle dark mode">
+                        <svg className="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <svg className="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <span className="toggle-text">{darkMode ? 'Light' : 'Dark'}</span>
+                    </button>
+
+                    <header className="header">
+                        <h1>STOCK MANAGEMENT</h1>
+                        <p>Track assets and consumables</p>
+                        <nav className="nav-tabs">
+                            <button 
+                                className={`nav-tab ${activeTab === 'assets' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('assets')}
+                            >
+                                📦 Assets
+                            </button>
+                            <button 
+                                className={`nav-tab ${activeTab === 'consumables' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('consumables')}
+                            >
+                                🧴 Consumables
+                            </button>
+                        </nav>
+                    </header>
+
+                    {activeTab === 'assets' ? (
+                        <AssetsModule assets={assets} setAssets={setAssets} />
+                    ) : (
+                        <ConsumablesModule 
+                            consumables={consumables} 
+                            setConsumables={setConsumables}
+                            dispensingHistory={dispensingHistory}
+                            setDispensingHistory={setDispensingHistory}
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function AssetsModule({ assets, setAssets }) {
+            const [showScanner, setShowScanner] = useState(false);
+            const [showAddAsset, setShowAddAsset] = useState(false);
+            const [showMoveAsset, setShowMoveAsset] = useState(false);
+            const [showInstallAsset, setShowInstallAsset] = useState(false);
+            const [showBarcodeModal, setShowBarcodeModal] = useState(false);
+            const [selectedAsset, setSelectedAsset] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [scanMode, setScanMode] = useState('find');
+
+            const inStockAssets = assets.filter(a => a.status === 'In Stock');
+            const installedAssets = assets.filter(a => a.status === 'Installed');
+
+            const filteredAssets = assets.filter(a => 
+                a.barcode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                a.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                a.serialNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                a.location?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+
+            const handleScanResult = (barcode) => {
+                const asset = assets.find(a => a.barcode === barcode);
+                if (asset) {
+                    setSelectedAsset(asset);
+                    setShowScanner(false);
+                    if (scanMode === 'move') setShowMoveAsset(true);
+                    else if (scanMode === 'install') setShowInstallAsset(true);
+                } else {
+                    alert(`Asset with barcode ${barcode} not found`);
+                }
+            };
+
+            const handleAddAsset = (newAsset) => {
+                setAssets([...assets, newAsset]);
+                setShowAddAsset(false);
+            };
+
+            const handleMoveAsset = (assetId, newLocation) => {
+                setAssets(assets.map(a => {
+                    if (a.id === assetId) {
+                        return { ...a, location: newLocation, movements: [...a.movements, { from: a.location, to: newLocation, date: new Date().toISOString(), by: 'Charlie' }] };
+                    }
+                    return a;
+                }));
+                setShowMoveAsset(false);
+                setSelectedAsset(null);
+            };
+
+            const handleInstallAsset = (assetId, installDetails) => {
+                setAssets(assets.map(a => {
+                    if (a.id === assetId) {
+                        return { ...a, status: 'Installed', location: null, installedAt: installDetails };
+                    }
+                    return a;
+                }));
+                setShowInstallAsset(false);
+                setSelectedAsset(null);
+            };
+
+            return (
+                <>
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{assets.length}</div>
+                            <div className="stat-label">Total Assets</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{inStockAssets.length}</div>
+                            <div className="stat-label">In Stock</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{installedAssets.length}</div>
+                            <div className="stat-label">Installed</div>
+                        </div>
+                    </div>
+
+                    <div className="quick-actions">
+                        <div className="quick-action" onClick={() => { setScanMode('find'); setShowScanner(true); }}>
+                            <div className="quick-action-icon">📷</div>
+                            <div className="quick-action-label">Scan to Find</div>
+                        </div>
+                        <div className="quick-action" onClick={() => setShowAddAsset(true)}>
+                            <div className="quick-action-icon">➕</div>
+                            <div className="quick-action-label">Add Asset</div>
+                        </div>
+                        <div className="quick-action" onClick={() => { setScanMode('move'); setShowScanner(true); }}>
+                            <div className="quick-action-icon">📦</div>
+                            <div className="quick-action-label">Move Asset</div>
+                        </div>
+                        <div className="quick-action" onClick={() => { setScanMode('install'); setShowScanner(true); }}>
+                            <div className="quick-action-icon">🔧</div>
+                            <div className="quick-action-label">Install Asset</div>
+                        </div>
+                    </div>
+
+                    <div className="panel">
+                        <div className="panel-header">
+                            <h2 className="panel-title">Asset Inventory</h2>
+                        </div>
+                        <input 
+                            type="text" 
+                            className="search-input" 
+                            placeholder="Search by barcode, type, serial, or location..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <div style={{overflowX: 'auto'}}>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Barcode</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredAssets.map(asset => (
+                                        <tr key={asset.id}>
+                                            <td>
+                                                <strong>{asset.type}</strong>
+                                                <br/><small style={{color: 'var(--text-muted)'}}>{asset.serialNumber}</small>
+                                            </td>
+                                            <td><span style={{fontFamily: 'Space Mono', color: 'var(--accent-pink)', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => { setSelectedAsset(asset); setShowBarcodeModal(true); }}>{asset.barcode}</span></td>
+                                            <td>
+                                                {asset.status === 'Installed' ? (
+                                                    <small style={{color: 'var(--text-muted)'}}>{asset.installedAt?.address}</small>
+                                                ) : (
+                                                    <span className="location-badge">{asset.location}</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <span className={`status-badge ${asset.status === 'In Stock' ? 'status-in-stock' : 'status-installed'}`}>
+                                                    {asset.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {asset.status === 'In Stock' && (
+                                                    <div style={{display: 'flex', gap: '8px'}}>
+                                                        <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedAsset(asset); setShowMoveAsset(true); }}>Move</button>
+                                                        <button className="btn btn-primary btn-sm" onClick={() => { setSelectedAsset(asset); setShowInstallAsset(true); }}>Install</button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {showScanner && <ScannerModal onClose={() => setShowScanner(false)} onScan={handleScanResult} mode={scanMode} />}
+                    {showAddAsset && <AddAssetModal onClose={() => setShowAddAsset(false)} onAdd={handleAddAsset} existingAssets={assets} />}
+                    {showMoveAsset && selectedAsset && <MoveAssetModal asset={selectedAsset} onClose={() => { setShowMoveAsset(false); setSelectedAsset(null); }} onMove={handleMoveAsset} />}
+                    {showInstallAsset && selectedAsset && <InstallAssetModal asset={selectedAsset} onClose={() => { setShowInstallAsset(false); setSelectedAsset(null); }} onInstall={handleInstallAsset} />}
+                    {showBarcodeModal && selectedAsset && <BarcodeModal asset={selectedAsset} onClose={() => { setShowBarcodeModal(false); setSelectedAsset(null); }} />}
+                </>
+            );
+        }
+
+        function ScannerModal({ onClose, onScan, mode }) {
+            const scannerRef = useRef(null);
+            const [manualBarcode, setManualBarcode] = useState('');
+
+            useEffect(() => {
+                const scanner = new Html5Qrcode("scanner-container");
+                scannerRef.current = scanner;
+                scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } },
+                    (decodedText) => { scanner.stop().then(() => onScan(decodedText)); }, () => {}
+                ).catch(err => console.log("Camera not available"));
+                return () => { if (scannerRef.current?.isScanning) scannerRef.current.stop(); };
+            }, []);
+
+            const handleManualSubmit = (e) => {
+                e.preventDefault();
+                if (manualBarcode.trim()) {
+                    if (scannerRef.current?.isScanning) scannerRef.current.stop().then(() => onScan(manualBarcode.trim()));
+                    else onScan(manualBarcode.trim());
+                }
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">{mode === 'find' ? 'Find Asset' : mode === 'move' ? 'Move Asset' : 'Install Asset'}</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <div id="scanner-container"></div>
+                            <form onSubmit={handleManualSubmit} style={{marginTop: '20px'}}>
+                                <div className="form-group">
+                                    <label className="form-label">Or enter barcode manually</label>
+                                    <div style={{display: 'flex', gap: '10px'}}>
+                                        <input type="text" className="form-input" placeholder="Enter barcode..." value={manualBarcode} onChange={(e) => setManualBarcode(e.target.value)} />
+                                        <button type="submit" className="btn btn-primary">Search</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function AddAssetModal({ onClose, onAdd, existingAssets }) {
+            const [type, setType] = useState('');
+            const [serialNumber, setSerialNumber] = useState('');
+            const [qNumber, setQNumber] = useState('');
+            const [qRefDescription, setQRefDescription] = useState('');
+            const [projectManager, setProjectManager] = useState('');
+            const [plannedDate, setPlannedDate] = useState('');
+            const [location, setLocation] = useState('');
+            const [generatedBarcode, setGeneratedBarcode] = useState('');
+            const barcodeRef = useRef(null);
+
+            useEffect(() => {
+                if (type) {
+                    const prefix = type.split(' ').map(w => w[0]).join('').toUpperCase();
+                    setGeneratedBarcode(`${prefix}${Date.now().toString().slice(-8)}`);
+                }
+            }, [type]);
+
+            useEffect(() => {
+                if (generatedBarcode && barcodeRef.current) {
+                    JsBarcode(barcodeRef.current, generatedBarcode, { format: "CODE128", width: 2, height: 60, displayValue: true, fontSize: 14, margin: 10 });
+                }
+            }, [generatedBarcode]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd({ id: `AST-${String(existingAssets.length + 1).padStart(3, '0')}`, type, barcode: generatedBarcode, serialNumber, qNumber, qRefDescription, projectManager, plannedDate, location, status: 'In Stock', receivedDate: new Date().toISOString().split('T')[0], movements: [] });
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth: '550px'}}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Add New Asset</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleSubmit}>
+                                <div className="form-group">
+                                    <label className="form-label">Asset Type *</label>
+                                    <select className="form-select" value={type} onChange={(e) => setType(e.target.value)} required>
+                                        <option value="">Select type...</option>
+                                        <option value="Flow Meter">Flow Meter</option>
+                                        <option value="Pressure Gauge">Pressure Gauge</option>
+                                        <option value="Data Logger">Data Logger</option>
+                                        <option value="Valve">Valve</option>
+                                        <option value="Sensor">Sensor</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Serial Number</label>
+                                    <input type="text" className="form-input" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} placeholder="Enter serial number..." />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Q Number *</label>
+                                    <input type="text" className="form-input" value={qNumber} onChange={(e) => setQNumber(e.target.value)} placeholder="e.g. Q12345" required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Q Reference Description *</label>
+                                    <input type="text" className="form-input" value={qRefDescription} onChange={(e) => setQRefDescription(e.target.value)} placeholder="Description of the asset..." required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Project Manager *</label>
+                                    <input type="text" className="form-input" value={projectManager} onChange={(e) => setProjectManager(e.target.value)} placeholder="Name of project manager..." required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Planned Project Date *</label>
+                                    <input type="date" className="form-input" value={plannedDate} onChange={(e) => setPlannedDate(e.target.value)} required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Location *</label>
+                                    <input type="text" className="form-input" value={location} onChange={(e) => setLocation(e.target.value.toUpperCase())} placeholder="e.g. RACK-A3, FLOOR" required />
+                                </div>
+                                {generatedBarcode && (
+                                    <div className="barcode-print-area">
+                                        <h3>{type}</h3>
+                                        <svg ref={barcodeRef}></svg>
+                                        <p>{qNumber} - {qRefDescription || 'No description'}</p>
+                                    </div>
+                                )}
+                                <div className="form-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                                    {generatedBarcode && <button type="button" className="btn btn-secondary" onClick={() => window.print()}>Print</button>}
+                                    <button type="submit" className="btn btn-primary">Add Asset</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function MoveAssetModal({ asset, onClose, onMove }) {
+            const [newLocation, setNewLocation] = useState(asset.location || '');
+            const quickLocations = ['FLOOR', 'RACK-A1', 'RACK-A2', 'RACK-A3', 'RACK-B1', 'RACK-B2', 'RACK-B3'];
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Move Asset</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="info-box">
+                                <strong>{asset.type}</strong>
+                                <p>Barcode: {asset.barcode} • Current: {asset.location}</p>
+                            </div>
+                            <form onSubmit={(e) => { e.preventDefault(); onMove(asset.id, newLocation); }}>
+                                <div className="form-group">
+                                    <label className="form-label">Quick Select</label>
+                                    <div className="quick-location-btns">
+                                        {quickLocations.map(loc => (
+                                            <button key={loc} type="button" className={`btn btn-sm ${newLocation === loc ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setNewLocation(loc)}>{loc}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Or enter custom location</label>
+                                    <input type="text" className="form-input" value={newLocation} onChange={(e) => setNewLocation(e.target.value.toUpperCase())} placeholder="e.g. VAN-SMITH, WORKSHOP" />
+                                </div>
+                                <div className="form-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary" disabled={!newLocation}>Move Asset</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function InstallAssetModal({ asset, onClose, onInstall }) {
+            const [jobNumber, setJobNumber] = useState('');
+            const [address, setAddress] = useState('');
+            const [notes, setNotes] = useState('');
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Install Asset</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="info-box">
+                                <strong>{asset.type}</strong>
+                                <p>Barcode: {asset.barcode} • Serial: {asset.serialNumber}</p>
+                            </div>
+                            <form onSubmit={(e) => { e.preventDefault(); onInstall(asset.id, { job: jobNumber, address, date: new Date().toISOString().split('T')[0], by: 'Charlie', notes }); }}>
+                                <div className="form-group">
+                                    <label className="form-label">Job Number *</label>
+                                    <input type="text" className="form-input" value={jobNumber} onChange={(e) => setJobNumber(e.target.value)} placeholder="e.g. JOB-2024-157" required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Installation Address *</label>
+                                    <input type="text" className="form-input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Enter the job address..." required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Notes</label>
+                                    <input type="text" className="form-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any additional notes..." />
+                                </div>
+                                <div className="form-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Confirm Installation</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function BarcodeModal({ asset, onClose }) {
+            const barcodeRef = useRef(null);
+
+            useEffect(() => {
+                if (barcodeRef.current) {
+                    JsBarcode(barcodeRef.current, asset.barcode, { format: "CODE128", width: 2, height: 80, displayValue: true, fontSize: 16, margin: 10 });
+                }
+            }, [asset.barcode]);
+
+            const handlePrint = () => {
+                window.print();
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Asset Label</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="barcode-print-area" id="barcode-print-section">
+                                <svg ref={barcodeRef}></svg>
+                                <div className="barcode-label-info">
+                                    <div className="label-row">
+                                        <span className="label-field">Q Number:</span>
+                                        <span className="label-value">{asset.qNumber || 'N/A'}</span>
+                                    </div>
+                                    <div className="label-row">
+                                        <span className="label-field">Q Ref Description:</span>
+                                        <span className="label-value">{asset.qRefDescription || 'N/A'}</span>
+                                    </div>
+                                    <div className="label-row">
+                                        <span className="label-field">Project Manager:</span>
+                                        <span className="label-value">{asset.projectManager || 'N/A'}</span>
+                                    </div>
+                                    <div className="label-row">
+                                        <span className="label-field">Planned Project Date:</span>
+                                        <span className="label-value">{asset.plannedDate || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="form-actions">
+                                <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
+                                <button type="button" className="btn btn-primary" onClick={handlePrint}>Print Label</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function ConsumablesModule({ consumables, setConsumables, dispensingHistory, setDispensingHistory }) {
+            const [showAddStock, setShowAddStock] = useState(false);
+            const [showDispense, setShowDispense] = useState(false);
+            const [showHistory, setShowHistory] = useState(false);
+            const [selectedConsumable, setSelectedConsumable] = useState(null);
+
+            const lowStockItems = consumables.filter(c => c.stock <= c.lowThreshold);
+
+            const handleAddStock = (consumableId, quantity) => {
+                setConsumables(consumables.map(c => c.id === consumableId ? { ...c, stock: c.stock + quantity } : c));
+                setShowAddStock(false);
+            };
+
+            const handleDispense = (details) => {
+                const consumable = consumables.find(c => c.id === details.consumableId);
+                setConsumables(consumables.map(c => c.id === details.consumableId ? { ...c, stock: c.stock - details.quantity } : c));
+                setDispensingHistory([{ id: Date.now(), consumableId: details.consumableId, consumableName: consumable.name, quantity: details.quantity, dispensedTo: details.dispensedTo, dispensedBy: details.dispensedBy, dispensedFor: details.dispensedFor, date: new Date().toISOString().split('T')[0] }, ...dispensingHistory]);
+                setShowDispense(false);
+            };
+
+            return (
+                <>
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-value">{consumables.length}</div>
+                            <div className="stat-label">Item Types</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className={`stat-value ${lowStockItems.length > 0 ? 'warning' : ''}`}>{lowStockItems.length}</div>
+                            <div className="stat-label">Low Stock</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-value">{dispensingHistory.length}</div>
+                            <div className="stat-label">Transactions</div>
+                        </div>
+                    </div>
+
+                    <div className="quick-actions">
+                        <div className="quick-action" onClick={() => setShowAddStock(true)}>
+                            <div className="quick-action-icon">📥</div>
+                            <div className="quick-action-label">Add Stock</div>
+                        </div>
+                        <div className="quick-action" onClick={() => setShowDispense(true)}>
+                            <div className="quick-action-icon">📤</div>
+                            <div className="quick-action-label">Dispense</div>
+                        </div>
+                        <div className="quick-action" onClick={() => setShowHistory(true)}>
+                            <div className="quick-action-icon">📋</div>
+                            <div className="quick-action-label">History</div>
+                        </div>
+                    </div>
+
+                    <div className="panel">
+                        <div className="panel-header">
+                            <h2 className="panel-title">Current Stock Levels</h2>
+                        </div>
+                        <div style={{overflowX: 'auto'}}>
+                            <table>
+                                <thead><tr><th>Item</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    {consumables.map(item => (
+                                        <tr key={item.id}>
+                                            <td><strong>{item.name}</strong></td>
+                                            <td>{item.stock} {item.unit}</td>
+                                            <td><span className={`status-badge ${item.stock <= item.lowThreshold ? 'status-low-stock' : 'status-in-stock'}`}>{item.stock <= item.lowThreshold ? 'Low Stock' : 'OK'}</span></td>
+                                            <td><button className="btn btn-primary btn-sm" onClick={() => { setSelectedConsumable(item); setShowDispense(true); }}>Dispense</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="panel">
+                        <div className="panel-header">
+                            <h2 className="panel-title">Recent Dispensing</h2>
+                        </div>
+                        {dispensingHistory.slice(0, 5).map(item => (
+                            <div key={item.id} className="history-item">
+                                <div className="history-details">
+                                    <strong>{item.consumableName}</strong>
+                                    <small>To: {item.dispensedTo} • By: {item.dispensedBy || item.by} • {item.date}</small>
+                                </div>
+                                <div className="history-qty out">-{item.quantity}</div>
+                            </div>
+                        ))}
+                        {dispensingHistory.length > 5 && (
+                            <button className="btn btn-secondary" style={{width: '100%', marginTop: '12px'}} onClick={() => setShowHistory(true)}>View All History</button>
+                        )}
+                    </div>
+
+                    {showAddStock && <AddStockModal consumables={consumables} onClose={() => setShowAddStock(false)} onAdd={handleAddStock} />}
+                    {showDispense && <DispenseModal consumables={consumables} selectedConsumable={selectedConsumable} dispensingHistory={dispensingHistory} onClose={() => { setShowDispense(false); setSelectedConsumable(null); }} onDispense={handleDispense} />}
+                    {showHistory && <HistoryModal history={dispensingHistory} onClose={() => setShowHistory(false)} />}
+                </>
+            );
+        }
+
+        function AddStockModal({ consumables, onClose, onAdd }) {
+            const [selectedId, setSelectedId] = useState('');
+            const [quantity, setQuantity] = useState('');
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Add Stock (Intake)</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={(e) => { e.preventDefault(); onAdd(selectedId, parseInt(quantity)); }}>
+                                <div className="form-group">
+                                    <label className="form-label">Item *</label>
+                                    <select className="form-select" value={selectedId} onChange={(e) => setSelectedId(e.target.value)} required>
+                                        <option value="">Select item...</option>
+                                        {consumables.map(c => <option key={c.id} value={c.id}>{c.name} (Current: {c.stock})</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Quantity Received *</label>
+                                    <input type="number" className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="1" required />
+                                </div>
+                                <div className="form-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Add Stock</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function DispenseModal({ consumables, selectedConsumable, dispensingHistory, onClose, onDispense }) {
+            const [selectedId, setSelectedId] = useState(selectedConsumable?.id || '');
+            const [quantity, setQuantity] = useState('');
+            const [dispensedTo, setDispensedTo] = useState('');
+            const [dispensedBy, setDispensedBy] = useState('');
+            const [dispensedFor, setDispensedFor] = useState('');
+
+            const currentConsumable = consumables.find(c => c.id === selectedId);
+            const personHistory = dispensedTo ? dispensingHistory.filter(h => h.dispensedTo.toLowerCase() === dispensedTo.toLowerCase()).slice(0, 3) : [];
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Dispense Stock</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={(e) => { e.preventDefault(); onDispense({ consumableId: selectedId, quantity: parseInt(quantity), dispensedTo, dispensedBy, dispensedFor }); }}>
+                                <div className="form-group">
+                                    <label className="form-label">Item *</label>
+                                    <select className="form-select" value={selectedId} onChange={(e) => setSelectedId(e.target.value)} required>
+                                        <option value="">Select item...</option>
+                                        {consumables.map(c => <option key={c.id} value={c.id}>{c.name} (Stock: {c.stock})</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Quantity *</label>
+                                    <input type="number" className="form-input" value={quantity} onChange={(e) => setQuantity(e.target.value)} min="1" max={currentConsumable?.stock || 999} required />
+                                    {currentConsumable && <small style={{color: 'var(--text-muted)'}}>Available: {currentConsumable.stock} {currentConsumable.unit}</small>}
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Dispensed To (Recipient) *</label>
+                                    <input type="text" className="form-input" value={dispensedTo} onChange={(e) => setDispensedTo(e.target.value)} placeholder="Name of person receiving..." required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Dispensed By (You) *</label>
+                                    <input type="text" className="form-input" value={dispensedBy} onChange={(e) => setDispensedBy(e.target.value)} placeholder="Your name..." required />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Dispensed For *</label>
+                                    <select className="form-select" value={dispensedFor} onChange={(e) => setDispensedFor(e.target.value)} required>
+                                        <option value="">Select reason...</option>
+                                        <option value="Van Stock">Van Stock</option>
+                                        <option value="Personal">Personal Use</option>
+                                        <option value="Job">Specific Job</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                {personHistory.length > 0 && (
+                                    <div className="info-box">
+                                        <strong>Recent takes by {dispensedTo}:</strong>
+                                        {personHistory.map(h => <p key={h.id}>{h.consumableName}: {h.quantity} on {h.date}</p>)}
+                                    </div>
+                                )}
+                                <div className="form-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Dispense</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function HistoryModal({ history, onClose }) {
+            const [filterPerson, setFilterPerson] = useState('');
+            const filteredHistory = filterPerson ? history.filter(h => h.dispensedTo.toLowerCase().includes(filterPerson.toLowerCase())) : history;
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth: '600px'}}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Dispensing History</h2>
+                            <button className="modal-close" onClick={onClose}>&times;</button>
+                        </div>
+                        <div className="modal-body">
+                            <input type="text" className="form-input" placeholder="Filter by person..." value={filterPerson} onChange={(e) => setFilterPerson(e.target.value)} style={{marginBottom: '16px'}} />
+                            <div style={{maxHeight: '400px', overflowY: 'auto'}}>
+                                {filteredHistory.map(item => (
+                                    <div key={item.id} className="history-item">
+                                        <div className="history-details">
+                                            <strong>{item.consumableName}</strong>
+                                            <small>To: {item.dispensedTo} • By: {item.dispensedBy || item.by} • For: {item.dispensedFor} • {item.date}</small>
+                                        </div>
+                                        <div className="history-qty out">-{item.quantity}</div>
+                                    </div>
+                                ))}
+                                {filteredHistory.length === 0 && (
+                                    <div className="empty-state">
+                                        <div className="empty-state-icon">📋</div>
+                                        <h3>No history found</h3>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
