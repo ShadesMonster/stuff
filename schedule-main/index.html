@@ -6045,12 +6045,19 @@
 
             // Render rows
             let hasData = false;
+            let isFirstWorkstream = true;
             workstreams.forEach(ws => {
                 if (grouped[ws].length === 0) return;
                 if (workstreamFilter !== 'all' && workstreamFilter !== ws) return;
 
                 hasData = true;
-                html += `<div class="workstream-divider"><div class="workstream-header" data-ws-name="${ws}">${ws}</div></div>`;
+                // Hide the first workstream header since the sticky bar already shows it
+                if (isFirstWorkstream) {
+                    html += `<div class="workstream-divider" style="height:0;overflow:hidden;"><div class="workstream-header" data-ws-name="${ws}">${ws}</div></div>`;
+                    isFirstWorkstream = false;
+                } else {
+                    html += `<div class="workstream-divider"><div class="workstream-header" data-ws-name="${ws}">${ws}</div></div>`;
+                }
 
                 grouped[ws].forEach(tech => {
                     html += `<div class="person-row">`;
