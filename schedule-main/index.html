@@ -3697,12 +3697,14 @@
                     for (const oldPartnerName of oldPartners) {
                         const oldPartner = TECHNICIANS.find(t => t.name === oldPartnerName);
                         if (oldPartner) {
-                            await supabaseClient
+                            let partnerQuery = supabaseClient
                                 .from('schedule_entries')
                                 .delete()
                                 .eq('technician_id', oldPartner.id)
-                                .eq('date', dateStr)
-                                .eq('q_number', oldJob.q);
+                                .eq('date', dateStr);
+                            if (oldJob.q) partnerQuery = partnerQuery.eq('q_number', oldJob.q);
+                            if (oldJob.location) partnerQuery = partnerQuery.eq('location', oldJob.location);
+                            await partnerQuery;
                             
                             // Update old partner's cell locally
                             await reloadTechnicianDay(oldPartner, dayIndex, dateStr);
@@ -3712,14 +3714,22 @@
                 }
                 
                 // Delete only the specific job being edited, not all jobs
-                if (oldJob) {
+                if (oldJob && oldJob.entryId) {
+                    // Use the unique database ID to delete exactly this one entry
                     await supabaseClient
                         .from('schedule_entries')
                         .delete()
+                        .eq('id', oldJob.entryId);
+                } else if (oldJob) {
+                    // Fallback: match on all fields to be as specific as possible
+                    let query = supabaseClient
+                        .from('schedule_entries')
+                        .delete()
                         .eq('technician_id', techId)
-                        .eq('date', dateStr)
-                        .eq('q_number', oldJob.q)
-                        .eq('location', oldJob.location);
+                        .eq('date', dateStr);
+                    if (oldJob.q) query = query.eq('q_number', oldJob.q);
+                    if (oldJob.location) query = query.eq('location', oldJob.location);
+                    await query;
                 } else {
                     // Fallback: delete all entries for this day (for status entries)
                     await supabaseClient
