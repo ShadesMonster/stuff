@@ -609,13 +609,28 @@
             padding: 0 24px 24px;
         }
 
+        .schedule-header-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px 16px 0 0;
+            box-shadow: var(--shadow-glow);
+            overflow: hidden;
+        }
+
+        .schedule-header-scroll {
+            overflow: hidden;
+        }
+
         .schedule-container {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
             box-shadow: var(--shadow-glow);
             overflow-x: auto;
-            overflow-y: visible;
             transition: all 0.2s ease;
         }
 
@@ -641,9 +656,6 @@
             color: var(--text-primary);
             font-weight: 600;
             border-bottom: 2px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 20;
         }
 
         .grid-header-cell:first-child {
@@ -1792,9 +1804,16 @@
 
     <!-- Schedule -->
     <div class="schedule-wrapper">
-        <div class="schedule-container">
+        <div class="schedule-header-sticky" id="scheduleHeaderSticky">
+            <div class="schedule-header-scroll" id="scheduleHeaderScroll">
+                <div class="schedule-grid" id="scheduleHeaderGrid">
+                    <!-- Header rendered by JS -->
+                </div>
+            </div>
+        </div>
+        <div class="schedule-container" id="scheduleContainer">
             <div class="schedule-grid" id="scheduleGrid">
-                <!-- Rendered by JS -->
+                <!-- Body rendered by JS -->
             </div>
         </div>
     </div>
@@ -5857,6 +5876,7 @@
         // Main render
         function renderSchedule() {
             const grid = document.getElementById('scheduleGrid');
+            const headerGrid = document.getElementById('scheduleHeaderGrid');
             const workstreamFilter = document.getElementById('workstreamFilter').value;
             const clientFilter = document.getElementById('clientFilter').value;
             const search = document.getElementById('searchInput').value.toLowerCase();
@@ -5867,11 +5887,13 @@
 
             // Grid columns
             const numDays = showWeekends ? 7 : 5;
-            grid.className = `schedule-grid${showWeekends ? ' show-weekends' : ''}`;
+            const gridClass = `schedule-grid${showWeekends ? ' show-weekends' : ''}`;
+            grid.className = gridClass;
+            headerGrid.className = gridClass;
 
-            // Build header
-            let html = '<div class="grid-header">';
-            html += '<div class="grid-header-cell">Technician</div>';
+            // Build header (into sticky header grid)
+            let headerHtml = '<div class="grid-header">';
+            headerHtml += '<div class="grid-header-cell">Technician</div>';
 
             for (let i = 0; i < numDays; i++) {
                 const date = new Date(currentWeekStart);
@@ -5881,7 +5903,7 @@
                 const weekendClass = (i >= 5) ? ' weekend' : '';
                 const clickHandler = currentUser ? `onclick="showBulkEntryModal(${i})"` : '';
                 const cursorStyle = currentUser ? 'cursor: pointer;' : '';
-                html += `
+                headerHtml += `
                     <div class="grid-header-cell${todayClass}${weekendClass}" ${clickHandler} style="${cursorStyle}" title="${currentUser ? 'Click to add bulk status' : ''}">
                         <div class="day-name">${f.dayName}</div>
                         <div class="day-date">${f.dayNum}</div>
@@ -5889,7 +5911,11 @@
                     </div>
                 `;
             }
-            html += '</div>';
+            headerHtml += '</div>';
+            headerGrid.innerHTML = headerHtml;
+
+            // Build body rows
+            let html = '';
 
             // Filter technicians
             let techs = TECHNICIANS.filter(t => {
@@ -9295,6 +9321,15 @@ Thank you,
             initDarkMode();
             await checkAuth();
             await loadAllData();
+
+            // Sync horizontal scroll between body and sticky header
+            const scheduleContainer = document.getElementById('scheduleContainer');
+            const headerScroll = document.getElementById('scheduleHeaderScroll');
+            if (scheduleContainer && headerScroll) {
+                scheduleContainer.addEventListener('scroll', () => {
+                    headerScroll.scrollLeft = scheduleContainer.scrollLeft;
+                });
+            }
         });
     </script>
 </body>
