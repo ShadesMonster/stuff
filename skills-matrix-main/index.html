@@ -1632,11 +1632,16 @@
                 if (!listResponse.ok) throw new Error(`List error: ${listResponse.status}`);
                 const listData = await listResponse.json();
 
+                // Debug: log the raw fields from SharePoint so we can see actual column names
+                if (listData.value.length > 0) {
+                    console.log('SharePoint fields for first employee:', JSON.stringify(listData.value[0].fields, null, 2));
+                }
+
                 allEmployees = listData.value.map(item => {
                     const fields = item.fields;
                     return {
                         id: item.id,
-                        name: fields.Employee || fields.Title || 'Unknown',
+                        name: fields.Employee || fields.Title || fields.Name || fields.FullName || fields.DisplayName || fields.EmployeeName || 'Unknown',
                         email: fields.Email || '',
                         phone: fields.Phone || fields.PhoneNumber || '',
                         role: fields.Role || '',
